@@ -23,24 +23,21 @@ jobs:
           git unzip python3-pip autoconf libtool pkg-config \
           zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
           cmake libffi-dev libssl-dev openjdk-17-jdk wget
-
         pip install buildozer cython==0.29.33
 
     - name: Install Android SDK and Build Tools
       run: |
         mkdir -p "$HOME/android-sdk/cmdline-tools"
         cd "$HOME/android-sdk/cmdline-tools"
-        
-        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O sdk-tools.zip
-        unzip sdk-tools.zip
-        mv cmdline-tools latest
-        mkdir -p cmdline-tools
-        mv latest cmdline-tools/
 
-        yes | cmdline-tools/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/android-sdk \
+        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O sdk-tools.zip
+        unzip sdk-tools.zip -d tmp
+        mv tmp/cmdline-tools ./latest
+
+        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk \
           "platform-tools" "platforms;android-33" "build-tools;36.0.0"
 
-        yes | cmdline-tools/cmdline-tools/bin/sdkmanager --licenses --sdk_root=$HOME/android-sdk
+        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses --sdk_root=$HOME/android-sdk
 
     - name: Build APK
       env:
@@ -48,9 +45,10 @@ jobs:
         PATH: $HOME/android-sdk/platform-tools:$PATH
       run: |
         export ANDROID_HOME=$HOME/android-sdk
-        export PATH=$ANDROID_HOME/cmdline-tools/cmdline-tools/bin:$PATH
+        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
         export PATH=$ANDROID_HOME/platform-tools:$PATH
         export PATH=$ANDROID_HOME/build-tools/36.0.0:$PATH
+
         buildozer -v android debug
         ls -l bin/
 
