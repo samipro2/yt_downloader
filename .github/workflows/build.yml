@@ -16,17 +16,19 @@ jobs:
       with:
         python-version: "3.8"
 
-    - name: Install Buildozer and dependencies
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           git unzip python3-pip autoconf libtool pkg-config \
           zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
-          cmake libffi-dev libssl-dev wget
+          cmake libffi-dev libssl-dev openjdk-17-jdk wget
 
+    - name: Install Python tools
+      run: |
         pip install buildozer cython==0.29.33
 
-    - name: Install Java 17
+    - name: Set up Java 17
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
@@ -48,14 +50,16 @@ jobs:
 
     - name: Build APK
       env:
-        ANDROIDSDK: $HOME/android-sdk
-        PATH: $HOME/android-sdk/platform-tools:$PATH
+        ANDROID_HOME: $HOME/android-sdk
+        PATH: |
+          $HOME/android-sdk/cmdline-tools/latest/bin
+          $HOME/android-sdk/platform-tools
+          $HOME/android-sdk/build-tools/36.0.0
+          /usr/bin
+          ${{ env.PATH }}
       run: |
-        export ANDROID_HOME=$HOME/android-sdk
-        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-        export PATH=$ANDROID_HOME/platform-tools:$PATH
-        export PATH=$ANDROID_HOME/build-tools/36.0.0:$PATH
-
+        echo "PATH during Build: $PATH"
+        git --version  # Ensure git is accessible
         buildozer -v android debug
         ls -l bin/
 
