@@ -24,10 +24,14 @@ jobs:
           zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
           cmake libffi-dev libssl-dev wget
 
-    - name: Install Python tools (Buildozer + latest python-for-android)
+    - name: Install Buildozer and correct p4a version
       run: |
         pip install buildozer cython==0.29.33
+        pip uninstall -y python-for-android
         pip install https://github.com/kivy/python-for-android/archive/master.zip
+
+        # Confirm --dir argument is now supported
+        python3 -m pythonforandroid.toolchain --help | grep -- --dir || (echo "ERROR: --dir still missing!" && exit 1)
 
     - name: Set up Java 17
       uses: actions/setup-java@v3
@@ -53,15 +57,12 @@ jobs:
 
     - name: Link Android SDK to Buildozer expected path
       run: |
-        # Link SDK to where Buildozer expects it
         mkdir -p ~/.buildozer/android/platform/
         ln -sfn $HOME/android-sdk ~/.buildozer/android/platform/android-sdk
 
-        # Symlink sdkmanager into expected legacy tools/bin/ path
         mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
         ln -sfn $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
 
-        # Tell Buildozer to use this SDK
         mkdir -p ~/.buildozer
         echo "[global]" > ~/.buildozer/global.ini
         echo "android.sdk_path = $HOME/android-sdk" >> ~/.buildozer/global.ini
@@ -72,7 +73,7 @@ jobs:
         export ANDROID_HOME=$HOME/android-sdk
         export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/36.0.0:$PATH
 
-        buildozer -v android debug
+        buildozer android debug
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
