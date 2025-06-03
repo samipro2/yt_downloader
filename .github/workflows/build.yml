@@ -5,7 +5,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # Changed to 22.04 for compatibility
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -18,16 +19,21 @@ jobs:
     - name: Install Buildozer and dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-        pip install buildozer
+        sudo apt-get install -y \
+          git unzip python3-pip autoconf libtool pkg-config \
+          zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
+          cmake libffi-dev libssl-dev openjdk-17-jdk
+        pip install buildozer cython==0.29.33
 
     - name: Build APK
       run: |
+        buildozer init
+        # Ensure buildozer.spec exists
         buildozer -v android debug
         ls -l bin/
         
     - name: Upload APK artifact
-      uses: actions/upload-artifact@v4  # CHANGED TO v4
+      uses: actions/upload-artifact@v4
       with:
         name: yt-downloader-apk
         path: bin/*.apk
