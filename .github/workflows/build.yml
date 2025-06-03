@@ -22,7 +22,7 @@ jobs:
         sudo apt-get install -y \
           git unzip python3-pip autoconf libtool pkg-config \
           zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
-          cmake libffi-dev libssl-dev openjdk-17-jdk wget
+          cmake libffi-dev libssl-dev wget
 
     - name: Install Python tools
       run: |
@@ -43,19 +43,26 @@ jobs:
         unzip sdk-tools.zip -d tmp
         mv tmp/cmdline-tools ./latest
 
-        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk \
+        export PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$PATH
+
+        yes | sdkmanager --sdk_root=$HOME/android-sdk \
           "platform-tools" "platforms;android-33" "build-tools;36.0.0"
 
-        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses --sdk_root=$HOME/android-sdk
+        yes | sdkmanager --licenses --sdk_root=$HOME/android-sdk
 
     - name: Build APK
+      env:
+        ANDROIDSDK: $HOME/android-sdk
       run: |
-        echo "PATH before Build: $PATH"
-
         export ANDROID_HOME=$HOME/android-sdk
         export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/36.0.0:$PATH
 
-        git --version  # Confirm git is accessible
+        # Ensure Buildozer uses the custom SDK path
+        mkdir -p ~/.buildozer
+        echo "[global]" > ~/.buildozer/global.ini
+        echo "android.sdk_path = $ANDROID_HOME" >> ~/.buildozer/global.ini
+        echo "android.ndk_path = $ANDROID_HOME/ndk-bundle" >> ~/.buildozer/global.ini  # Optional if using pre-installed NDK
+
         buildozer -v android debug
         ls -l bin/
 
