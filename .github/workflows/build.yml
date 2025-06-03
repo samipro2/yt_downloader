@@ -52,17 +52,21 @@ jobs:
 
     - name: Link Android SDK to Buildozer expected path
       run: |
-        # Buildozer expects SDK here:
+        # Link the SDK to where Buildozer expects it
         mkdir -p ~/.buildozer/android/platform/
         ln -sfn $HOME/android-sdk ~/.buildozer/android/platform/android-sdk
 
-        # Setup global.ini to avoid redownloading SDK/NDK
+        # Symlink expected tools/bin to point to cmdline-tools/latest
+        mkdir -p ~/.buildozer/android/platform/android-sdk/tools
+        ln -sfn $HOME/android-sdk/cmdline-tools/latest ~/.buildozer/android/platform/android-sdk/tools/bin
+
+        # Write global.ini so Buildozer doesn't try to redownload SDK/NDK
         mkdir -p ~/.buildozer
         echo "[global]" > ~/.buildozer/global.ini
         echo "android.sdk_path = $HOME/android-sdk" >> ~/.buildozer/global.ini
         echo "android.ndk_path = $HOME/android-sdk/ndk-bundle" >> ~/.buildozer/global.ini
 
-        echo "Checking for aidl..."
+        echo "Checking aidl availability:"
         find $HOME/android-sdk -name aidl
 
     - name: Build APK
