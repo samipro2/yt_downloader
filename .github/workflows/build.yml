@@ -8,15 +8,15 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout code
+    - name: 🧾 Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python
+    - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.8"
 
-    - name: Install system dependencies
+    - name: 🧱 Install OS packages
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -24,22 +24,24 @@ jobs:
           zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
           cmake libffi-dev libssl-dev wget
 
-    - name: Install Buildozer and correct p4a version
+    - name: 📦 Install Python tools
       run: |
         pip install buildozer cython==0.29.33
         pip uninstall -y python-for-android
         pip install https://github.com/kivy/python-for-android/archive/master.zip
 
-        # Confirm --dir argument is now supported
-        python3 -m pythonforandroid.toolchain --help | grep -- --dir || (echo "ERROR: --dir still missing!" && exit 1)
+        echo "✅ p4a version:"
+        python3 -m pythonforandroid.toolchain --version
+        echo "✅ checking --dir support:"
+        python3 -m pythonforandroid.toolchain --help | grep -- --dir || (echo "❌ ERROR: p4a too old" && exit 1)
 
-    - name: Set up Java 17
+    - name: ☕ Install Java 17
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Install Android SDK and Build Tools
+    - name: 📱 Install Android SDK & Build Tools
       run: |
         mkdir -p "$HOME/android-sdk/cmdline-tools"
         cd "$HOME/android-sdk/cmdline-tools"
@@ -55,7 +57,7 @@ jobs:
 
         yes | sdkmanager --licenses --sdk_root=$HOME/android-sdk
 
-    - name: Link Android SDK to Buildozer expected path
+    - name: 🔧 Patch Buildozer paths
       run: |
         mkdir -p ~/.buildozer/android/platform/
         ln -sfn $HOME/android-sdk ~/.buildozer/android/platform/android-sdk
@@ -68,14 +70,14 @@ jobs:
         echo "android.sdk_path = $HOME/android-sdk" >> ~/.buildozer/global.ini
         echo "android.ndk_path = $HOME/android-sdk/ndk-bundle" >> ~/.buildozer/global.ini
 
-    - name: Build APK
+    - name: 🛠️ Build APK
       run: |
         export ANDROID_HOME=$HOME/android-sdk
         export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/36.0.0:$PATH
 
         buildozer android debug
 
-    - name: Upload APK artifact
+    - name: 📤 Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: yt-downloader-apk
