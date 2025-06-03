@@ -16,7 +16,7 @@ jobs:
       with:
         python-version: "3.8"
 
-    - name: 🧱 Install OS packages
+    - name: 🧱 Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -24,16 +24,16 @@ jobs:
           zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
           cmake libffi-dev libssl-dev wget
 
-    - name: 📦 Install Python tools
+    - name: 📦 Install Buildozer and python-for-android (editable)
       run: |
         pip install buildozer cython==0.29.33
-        pip uninstall -y python-for-android
-        pip install https://github.com/kivy/python-for-android/archive/master.zip
 
-        echo "✅ p4a version:"
-        python3 -m pythonforandroid.toolchain --version
-        echo "✅ checking --dir support:"
-        python3 -m pythonforandroid.toolchain --help | grep -- --dir || (echo "❌ ERROR: p4a too old" && exit 1)
+        # Clone and install latest python-for-android in editable mode
+        git clone https://github.com/kivy/python-for-android.git
+        pip install -e python-for-android
+
+        # Verify that --dir is supported
+        python3 -m pythonforandroid.toolchain --help | grep -- --dir || (echo "❌ ERROR: --dir not supported" && exit 1)
 
     - name: ☕ Install Java 17
       uses: actions/setup-java@v3
@@ -41,7 +41,7 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: 📱 Install Android SDK & Build Tools
+    - name: 📱 Install Android SDK and Build Tools
       run: |
         mkdir -p "$HOME/android-sdk/cmdline-tools"
         cd "$HOME/android-sdk/cmdline-tools"
@@ -57,7 +57,7 @@ jobs:
 
         yes | sdkmanager --licenses --sdk_root=$HOME/android-sdk
 
-    - name: 🔧 Patch Buildozer paths
+    - name: 🔧 Patch Buildozer SDK paths
       run: |
         mkdir -p ~/.buildozer/android/platform/
         ln -sfn $HOME/android-sdk ~/.buildozer/android/platform/android-sdk
@@ -77,7 +77,7 @@ jobs:
 
         buildozer android debug
 
-    - name: 📤 Upload APK
+    - name: 📤 Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: yt-downloader-apk
