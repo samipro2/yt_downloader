@@ -56,18 +56,15 @@ jobs:
         mkdir -p ~/.buildozer/android/platform/
         ln -sfn $HOME/android-sdk ~/.buildozer/android/platform/android-sdk
 
-        # Symlink expected tools/bin to point to cmdline-tools/latest
-        mkdir -p ~/.buildozer/android/platform/android-sdk/tools
-        ln -sfn $HOME/android-sdk/cmdline-tools/latest ~/.buildozer/android/platform/android-sdk/tools/bin
+        # Patch: Fake legacy tools/bin path with real sdkmanager
+        mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
+        ln -sfn $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
 
-        # Write global.ini so Buildozer doesn't try to redownload SDK/NDK
+        # Tell Buildozer to use this SDK
         mkdir -p ~/.buildozer
         echo "[global]" > ~/.buildozer/global.ini
         echo "android.sdk_path = $HOME/android-sdk" >> ~/.buildozer/global.ini
         echo "android.ndk_path = $HOME/android-sdk/ndk-bundle" >> ~/.buildozer/global.ini
-
-        echo "Checking aidl availability:"
-        find $HOME/android-sdk -name aidl
 
     - name: Build APK
       run: |
