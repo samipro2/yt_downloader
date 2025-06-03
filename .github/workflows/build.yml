@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # Changed to 22.04 for compatibility
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout code
@@ -27,8 +27,7 @@ jobs:
 
     - name: Build APK
       run: |
-        buildozer init
-        # Ensure buildozer.spec exists
+        # Only run build command, skip initialization
         buildozer -v android debug
         ls -l bin/
         
