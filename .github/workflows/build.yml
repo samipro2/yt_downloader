@@ -24,9 +24,10 @@ jobs:
           zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
           cmake libffi-dev libssl-dev wget
 
-    - name: Install Python tools
+    - name: Install Python tools (Buildozer + latest python-for-android)
       run: |
         pip install buildozer cython==0.29.33
+        pip install https://github.com/kivy/python-for-android/archive/master.zip
 
     - name: Set up Java 17
       uses: actions/setup-java@v3
@@ -52,11 +53,11 @@ jobs:
 
     - name: Link Android SDK to Buildozer expected path
       run: |
-        # Link the SDK to where Buildozer expects it
+        # Link SDK to where Buildozer expects it
         mkdir -p ~/.buildozer/android/platform/
         ln -sfn $HOME/android-sdk ~/.buildozer/android/platform/android-sdk
 
-        # Patch: Fake legacy tools/bin path with real sdkmanager
+        # Symlink sdkmanager into expected legacy tools/bin/ path
         mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
         ln -sfn $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
 
@@ -72,7 +73,6 @@ jobs:
         export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/36.0.0:$PATH
 
         buildozer -v android debug
-        ls -l bin/
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
