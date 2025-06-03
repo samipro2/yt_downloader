@@ -49,17 +49,13 @@ jobs:
         yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses --sdk_root=$HOME/android-sdk
 
     - name: Build APK
-      env:
-        ANDROID_HOME: $HOME/android-sdk
-        PATH: |
-          $HOME/android-sdk/cmdline-tools/latest/bin
-          $HOME/android-sdk/platform-tools
-          $HOME/android-sdk/build-tools/36.0.0
-          /usr/bin
-          ${{ env.PATH }}
       run: |
-        echo "PATH during Build: $PATH"
-        git --version  # Ensure git is accessible
+        echo "PATH before Build: $PATH"
+
+        export ANDROID_HOME=$HOME/android-sdk
+        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/36.0.0:$PATH
+
+        git --version  # Confirm git is accessible
         buildozer -v android debug
         ls -l bin/
 
